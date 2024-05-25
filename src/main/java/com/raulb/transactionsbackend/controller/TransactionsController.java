@@ -1,38 +1,64 @@
 package com.raulb.transactionsbackend.controller;
 
 import com.raulb.transactionsbackend.domain.Transaction;
+import com.raulb.transactionsbackend.kafka.producer.TransactionApproveKafkaProducer;
 import com.raulb.transactionsbackend.kafka.producer.TransactionCreateKafkaProducer;
-import com.raulb.transactionsbackend.kafka.producer.TransactionKafkaProducer;
+import com.raulb.transactionsbackend.kafka.producer.TransactionCancelKafkaProducer;
+import com.raulb.transactionsbackend.service.TransactionService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping(("/transactions"))
 @CrossOrigin()
 @AllArgsConstructor
 public class TransactionsController {
-    private final TransactionKafkaProducer transactionKafkaProducer;
+    private final TransactionCancelKafkaProducer transactionCancelKafkaProducer;
     private final TransactionCreateKafkaProducer transactionCreateKafkaProducer;
+    private final TransactionApproveKafkaProducer transactionApproveKafkaProducer;
+    private final TransactionService transactionService;
 
     @PostMapping
     public void saveTransaction(@RequestBody Transaction transaction) {
-        transactionKafkaProducer.writeToKafka(transaction);
+        transactionCreateKafkaProducer.writeToKafka(transaction);
+    }
+
+    @DeleteMapping
+    public void cancelTransaction(@RequestBody Transaction transaction) {
+        transactionCancelKafkaProducer.writeToKafka(transaction);
     }
 
     @PutMapping
-    public void editTransaction(@RequestBody Transaction transaction) {
-        transactionKafkaProducer.writeToKafka(transaction);
+    public void approveTransaction(@RequestBody Transaction transaction) {
+        transactionApproveKafkaProducer.writeToKafka(transaction);
     }
 
-    @PutMapping("/approve")
-    public void approveTransaction(@RequestBody Transaction transaction) {
-        transactionKafkaProducer.writeToKafka(transaction);
+    @GetMapping
+    public List<Transaction> getTransactions() {
+        return transactionService.getTransactions();
+    }
+
+    @GetMapping
+    public List<Transaction> getApprovedTransactions() {
+        return transactionService.getApprovedTransactions();
+    }
+
+    @GetMapping
+    public List<Transaction> getOpenedTransactions() {
+        return transactionService.getOpenedTransactions();
+    }
+
+    @GetMapping
+    public List<Transaction> computeTotalAmount(String user) {
+        return transactionService.getTransactions();
     }
 
     @PostMapping("/test")
     public void generate() {
-        KafkaTransactionThread thread1 = new KafkaTransactionThread(transactionKafkaProducer);
-        KafkaTransactionDeleteThread thread2 = new KafkaTransactionDeleteThread(transactionCreateKafkaProducer);
+        KafkaTransactionThread thread1 = new KafkaTransactionThread(transactionCancelKafkaProducer);
+        KafkaTransactionCreateThread thread2 = new KafkaTransactionCreateThread(transactionCreateKafkaProducer);
 
         thread1.start();
         thread2.start();

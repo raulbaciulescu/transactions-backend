@@ -1,6 +1,5 @@
 package com.raulb.transactionsbackend.kafka.consumer;
 
-import com.raulb.transactionsbackend.domain.Transaction;
 import com.raulb.transactionsbackend.domain.TransactionAction;
 import com.raulb.transactionsbackend.dto.TransactionEvent;
 import com.raulb.transactionsbackend.service.TransactionService;
@@ -29,14 +28,14 @@ public class TransactionKafkaConsumer {
         logger.info("Received a message contains a user information from topic, " +
                 "{} partition {}, and {} offset, name: {}", topic, partition, offset, transactionEvent);
         if (transactionEvent.getAction() == TransactionAction.CREATE) {
-            // do something
             logger.info("CREATE");
+            transactionService.createTransaction(transactionEvent.getTransaction());
         } else if (transactionEvent.getAction() == TransactionAction.APPROVE) {
-            // do something
             logger.info("APPROVE");
-        } else if (transactionEvent.getAction() == TransactionAction.EDIT) {
-            // do something
-            logger.info("EDIT");
+            transactionService.approveTransaction(transactionEvent.getTransaction());
+        } else if (transactionEvent.getAction() == TransactionAction.CANCEL) {
+            logger.info("CANCEL");
+            transactionService.cancelTransaction(transactionEvent.getTransaction());
         }
     }
 }

@@ -3,10 +3,8 @@ package com.raulb.transactionsbackend.kafka.producer;
 import com.raulb.transactionsbackend.domain.Transaction;
 import com.raulb.transactionsbackend.domain.TransactionAction;
 import com.raulb.transactionsbackend.dto.TransactionEvent;
-import com.raulb.transactionsbackend.kafka.consumer.TransactionKafkaConsumer;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.admin.NewTopic;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,8 +15,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class TransactionKafkaProducer {
-    private static final Logger logger = LoggerFactory.getLogger(TransactionKafkaProducer.class);
+public class TransactionCancelKafkaProducer {
+    private static final Logger logger = LoggerFactory.getLogger(TransactionCancelKafkaProducer.class);
     private final KafkaTemplate<String, TransactionEvent> kafkaTemplate;
 
     @Value("${spring.kafka.topic.name}")
@@ -38,7 +36,7 @@ public class TransactionKafkaProducer {
 
     public void writeToKafka(Transaction transaction) {
         logger.info("write to kafka transaction: {}", transaction);
-        TransactionEvent transactionEvent = new TransactionEvent(transaction, TransactionAction.EDIT);
+        TransactionEvent transactionEvent = new TransactionEvent(transaction, TransactionAction.CANCEL);
         kafkaTemplate.send(topic, transactionEvent);
     }
 }
